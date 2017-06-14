@@ -1,0 +1,8 @@
+/.settings
+/.project
+/.classpath
+/target
+
+.idea
+*.iml
+/src/main/resources/config/prod.properties
