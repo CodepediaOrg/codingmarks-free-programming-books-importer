@@ -7,7 +7,6 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import sun.misc.Launcher;
 
-import javax.sound.midi.SysexMessage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,102 +39,106 @@ public class ImportFreeProgrammingBooks {
 
 
         //read file line by line
-        InputStream freeProgrammingBooksStream = ImportFreeProgrammingBooks.class.getClassLoader().getResourceAsStream(args[0]);
-        BufferedReader br = new BufferedReader(new InputStreamReader(freeProgrammingBooksStream, "UTF-8"));
+        try (InputStream freeProgrammingBooksStream =
+                            ImportFreeProgrammingBooks.class.getClassLoader().getResourceAsStream(args[0])){
 
-        String line;
-        String category = null;
-        String subCategory = null;
-        while ((line = br.readLine()) != null) {
-            System.out.println(line);
-            if(line.trim().isEmpty()){
-                continue;
-            } else {
-                if(line.trim().startsWith("####")){
-                    subCategory = getSubCategory(line);
-                    System.out.println("subCategory : " + subCategory);
-                } else if(line.trim().startsWith("###")) {
-                    subCategory = null;
-                    category = getCategory(line);
-                    System.out.println("category : " + category);
-                } else if(line.contains("[") && !category.equals("index")){ //we skip the initial index
-
-                    Document document = new Document();
-
-                    String title = line.substring(line.indexOf("[")+1,line.indexOf("]"));
-                    System.out.println("title : " + title);
-                    document.append("name", title);
-
-                    line = line.substring(line.indexOf("]")+1, line.length());//it can happen that some titles have () in them
-
-                    String location = line.substring(line.indexOf("(")+1,line.indexOf(")"));
-                    System.out.println("url : " + location);
-                    document.append("location", location);
-
-                    List<String> tags = new ArrayList<>();
-                    tags.add("free-programming-books");//standard tag for all books
-                    tags.add(category);//all links have at least one category (fall under an ### element)
-                    if(subCategory != null) {
-                        tags.add(subCategory);
-                    }
-                    System.out.println("tags : " + tags);
-                    document.append("tags", tags);
-
-                    //build description
-                    String description = line.substring(line.indexOf(")") + 1, line.length());
-                    //if(!description.trim().isEmpty()){
-                    if(true){
-                        description = description.trim();
-                        if(description.startsWith("-")){
-                            description = description.substring(1, description.length()).trim();
-                        }
-                        System.out.println("description : " + description);
-                        document.append("description", description);
-
-                        String descriptionHTML = "<p>" + description + "</p>";
-                        System.out.println("descriptionHTML : " + descriptionHTML);
-                        document.append("descriptionHtml", descriptionHTML);
-                    }
-
-                    //add createdAt
-                    Date now = new Date();
-                    System.out.println("createdAt: " + now);
-                    document.append("createdAt", now);
-
-                    //shared
-                    System.out.println("shared:" + true);
-                    document.append("shared", true);
-
-                    //userId
-                    System.out.println("userId:" + configProperties.getProperty("userId"));
-                    document.append("userId", configProperties.getProperty("userId"));
-
-
-                    //Add the document to mongoDB
-                    Document doc = new Document("name", title)
-                            .append("location", location)
-                            .append("description", 1)
-                            .append("info", new Document("x", 203).append("y", 102));
-
-                    //verify if the document is present
-                    Document bookmark = bookmarksCollection.find(eq("location", location)).first();
-                    if(bookmark!=null){
-                        System.out.println("*********************** Bookmark already present *********************** ");
-                        System.out.println(bookmark.toJson());
+            try(BufferedReader br =
+                        new BufferedReader(new InputStreamReader(freeProgrammingBooksStream, "UTF-8"))){
+                String line;
+                String category = null;
+                String subCategory = null;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
+                    if(line.trim().isEmpty()){
+                        continue;
                     } else {
-                        bookmarksCollection.insertOne(document);
-                        System.out.println("------------------- Bookmark successfuly inserted ------------------- ");
-                    }
+                        if(line.trim().startsWith("####")){
+                            subCategory = getSubCategory(line);
+                            System.out.println("subCategory : " + subCategory);
+                        } else if(line.trim().startsWith("###")) {
+                            subCategory = null;
+                            category = getCategory(line);
+                            System.out.println("category : " + category);
+                        } else if(line.contains("[") && !category.equals("index")){ //we skip the initial index
 
-                    System.out.println("\n ");
-                } else {
-                    System.out.println("*********************** misc LINE : *********************** ");
+                            Document document = new Document();
+
+                            String title = line.substring(line.indexOf("[")+1,line.indexOf("]"));
+                            System.out.println("title : " + title);
+                            document.append("name", title);
+
+                            line = line.substring(line.indexOf("]")+1, line.length());//it can happen that some titles have () in them
+
+                            String location = line.substring(line.indexOf("(")+1,line.indexOf(")"));
+                            System.out.println("url : " + location);
+                            document.append("location", location);
+
+                            List<String> tags = new ArrayList<>();
+                            tags.add("free-programming-books");//standard tag for all books
+                            tags.add(category);//all links have at least one category (fall under an ### element)
+                            if(subCategory != null) {
+                                tags.add(subCategory);
+                            }
+                            System.out.println("tags : " + tags);
+                            document.append("tags", tags);
+
+                            //build description
+                            String description = line.substring(line.indexOf(")") + 1, line.length());
+                            //if(!description.trim().isEmpty()){
+                            if(true){
+                                description = description.trim();
+                                if(description.startsWith("-")){
+                                    description = description.substring(1, description.length()).trim();
+                                }
+                                System.out.println("description : " + description);
+                                document.append("description", description);
+
+                                String descriptionHTML = "<p>" + description + "</p>";
+                                System.out.println("descriptionHTML : " + descriptionHTML);
+                                document.append("descriptionHtml", descriptionHTML);
+                            }
+
+                            //add createdAt
+                            Date now = new Date();
+                            System.out.println("createdAt: " + now);
+                            document.append("createdAt", now);
+
+                            //shared
+                            System.out.println("shared:" + true);
+                            document.append("shared", true);
+
+                            //userId
+                            System.out.println("userId:" + configProperties.getProperty("userId"));
+                            document.append("userId", configProperties.getProperty("userId"));
+
+
+                            //Add the document to mongoDB
+                            Document doc = new Document("name", title)
+                                    .append("location", location)
+                                    .append("description", 1)
+                                    .append("info", new Document("x", 203).append("y", 102));
+
+                            //verify if the document is present
+                            Document bookmark = bookmarksCollection.find(eq("location", location)).first();
+                            if(bookmark!=null){
+                                System.out.println("*********************** Bookmark already present *********************** ");
+                                System.out.println(bookmark.toJson());
+                            } else {
+                                bookmarksCollection.insertOne(document);
+                                System.out.println("------------------- Bookmark successfuly inserted ------------------- ");
+                            }
+
+                            System.out.println("\n ");
+                        } else {
+                            System.out.println("*********************** misc LINE : *********************** ");
+                        }
+                    }
                 }
             }
+
         }
 
     }
-
 
     private static Properties getConfigProperties() throws IOException {
         String environment = System.getProperty("environment");
