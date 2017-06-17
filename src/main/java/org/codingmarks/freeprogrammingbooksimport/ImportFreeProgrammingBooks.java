@@ -40,7 +40,7 @@ public class ImportFreeProgrammingBooks {
 
 
         //read file line by line
-        InputStream freeProgrammingBooksStream = ImportFreeProgrammingBooks.class.getClassLoader().getResourceAsStream("free-programming-books-test.md");
+        InputStream freeProgrammingBooksStream = ImportFreeProgrammingBooks.class.getClassLoader().getResourceAsStream(args[0]);
         BufferedReader br = new BufferedReader(new InputStreamReader(freeProgrammingBooksStream, "UTF-8"));
 
         String line;
@@ -58,13 +58,15 @@ public class ImportFreeProgrammingBooks {
                     subCategory = null;
                     category = getCategory(line);
                     System.out.println("category : " + category);
-                } else if(line.contains("[")){
+                } else if(line.contains("[") && !category.equals("index")){ //we skip the initial index
 
                     Document document = new Document();
 
                     String title = line.substring(line.indexOf("[")+1,line.indexOf("]"));
                     System.out.println("title : " + title);
                     document.append("name", title);
+
+                    line = line.substring(line.indexOf("]")+1, line.length());//it can happen that some titles have () in them
 
                     String location = line.substring(line.indexOf("(")+1,line.indexOf(")"));
                     System.out.println("url : " + location);
@@ -81,7 +83,8 @@ public class ImportFreeProgrammingBooks {
 
                     //build description
                     String description = line.substring(line.indexOf(")") + 1, line.length());
-                    if(!description.trim().isEmpty()){
+                    //if(!description.trim().isEmpty()){
+                    if(true){
                         description = description.trim();
                         if(description.startsWith("-")){
                             description = description.substring(1, description.length()).trim();
