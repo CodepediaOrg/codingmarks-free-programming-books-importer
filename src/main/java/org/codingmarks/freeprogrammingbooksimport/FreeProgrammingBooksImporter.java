@@ -31,7 +31,7 @@ public class FreeProgrammingBooksImporter {
 
         System.out.println("number of bookmarks :" + bookmarksCollection.count());
 
-        File dir = new File(args[0]);
+        File dir = new File(configProperties.getProperty("free-programming-books.directory.location"));
         File[] files = dir.listFiles((dir1, name) -> name.startsWith("free-programming-books") && name.endsWith(".md"));
         int numberOfInsertedBookmarks = 0;
         for(int i=0; i < files.length; i++ ){
