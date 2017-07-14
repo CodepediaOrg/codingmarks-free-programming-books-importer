@@ -7,10 +7,7 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -75,8 +72,9 @@ public class FreeProgrammingBooksImporter {
                                 System.out.println("url : " + location);
                                 document.append("location", location);
 
-                                List<String> tags = new ArrayList<>();
-                                tags.add(getFileNameWithoutExtension(fileName));//standard tag for all books
+                                Set<String> tags = new HashSet<>();
+                                tags.add("free-programming-books");//all free programming books get this tag
+                                tags.add(getFileNameWithoutExtension(fileName));
                                 tags.add(category);//all links have at least one category (fall under an ### element)
                                 if(subCategory != null) {
                                     tags.add(subCategory);
